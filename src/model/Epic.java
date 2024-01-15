@@ -4,23 +4,41 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Epic extends Task {
-    private List<Long> subTasks;
+    private List<Long> subTaskIds;
 
     public Epic() {
-        this.subTasks = new ArrayList<>();
+        this.subTaskIds = new ArrayList<>();
     }
 
     public Epic(String name, String description, TaskStatus status) {
         super(name, description, status);
-        this.subTasks = new ArrayList<>();
+        this.subTaskIds = new ArrayList<>();
     }
 
-    public List<Long> getSubTasks() {
-        return subTasks;
+    public List<Long> getSubTaskIds() {
+        return subTaskIds;
     }
 
-    public void setSubTasks(List<Long> subTasks) {
-        this.subTasks = subTasks;
+    public void setSubTaskIds(List<Long> subTaskIds) {
+        this.subTaskIds = subTaskIds;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        Epic epic = (Epic) o;
+
+        return subTaskIds.equals(epic.subTaskIds);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + subTaskIds.hashCode();
+        return result;
     }
 
     @Override
@@ -32,10 +50,10 @@ public class Epic extends Task {
                 ", status=" + status +
                 ", subTasks={");
 
-        if (subTasks.isEmpty()) {
+        if (subTaskIds.isEmpty()) {
             result.append("Empty}");
         } else {
-            for (long id : subTasks) {
+            for (long id : subTaskIds) {
                 result.append(id).append(",");
             }
             result.setCharAt(result.length() - 1, '}');
