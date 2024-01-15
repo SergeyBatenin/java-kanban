@@ -36,7 +36,7 @@ public class Epic extends Task {
             result.append("Empty}");
         } else {
             for (long id : subTasks) {
-                result.append('\'').append(id).append("',");
+                result.append(id).append(",");
             }
             result.setCharAt(result.length() - 1, '}');
         }
