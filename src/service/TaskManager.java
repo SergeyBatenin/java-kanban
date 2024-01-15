@@ -33,9 +33,9 @@ public class TaskManager {
         subTask.setDescription(task.getDescription());
         subTask.setStatus(TaskStatus.NEW);
         if (task instanceof SubTask) {
-            Epic parent = ((SubTask) task).getEpic();
-            subTask.setEpic(parent);
-            parent.getSubTasks().add(subTask);
+            long parentId = ((SubTask) task).getEpicId();
+            subTask.setEpicId(parentId);
+            epicTasks.get(parentId).getSubTasks().add(subTask);
         } else {
             throw new RuntimeException("Подзадача не может существовать без эпика");
         }
@@ -59,17 +59,18 @@ public class TaskManager {
         return task;
     }
     public SubTask updateSubTask(SubTask task) {
-        checkEpicStatus(task.getEpic());
+        updateEpicStatus(task.getEpicId());
         subTasks.put(task.getId(), task);
         return task;
     }
     public Epic updateEpicTask(Epic task) {
-        checkEpicStatus(task);
+        updateEpicStatus(task.getId());
         epicTasks.put(task.getId(), task);
         return task;
     }
 
-    private void checkEpicStatus(Epic epic) {
+    private void updateEpicStatus(long epicId) {
+        Epic epic = epicTasks.get(epicId);
         List<SubTask> epicSubTasks = epic.getSubTasks();
         if(epicSubTasks.isEmpty()) {
             epic.setStatus(TaskStatus.NEW);
@@ -111,10 +112,11 @@ public class TaskManager {
     public void removeAllSubTasks() {
         Collection<SubTask> subtasks = subTasks.values();
         for (SubTask task : subtasks) {
-            Epic subTaskParent = task.getEpic();
+            long parentId = task.getEpicId();
+            Epic subTaskParent = epicTasks.get(parentId);
             List<SubTask> parentSubtasks = subTaskParent.getSubTasks();
             parentSubtasks.remove(task);
-            checkEpicStatus(subTaskParent);
+            updateEpicStatus(parentId);
         }
 
         subTasks.clear();
@@ -147,11 +149,12 @@ public class TaskManager {
     }
     public void removeSubTaskById(long id) {
         SubTask subtask = subTasks.get(id);
-        Epic parent = subtask.getEpic();
+        long parentId = subtask.getEpicId();
+        Epic parent = epicTasks.get(parentId);
         List<SubTask> parentSubTasks = parent.getSubTasks();
         parentSubTasks.remove(subtask);
         subTasks.remove(id);
-        checkEpicStatus(parent);
+        updateEpicStatus(parentId);
     }
     public void removeEpicTaskById(long id) {
         Epic epic = epicTasks.get(id);

@@ -11,10 +11,10 @@ public abstract class Task {
     public Task() {
     }
 
-    public Task(String name, String description) {
+    public Task(String name, String description, TaskStatus status) {
         this.name = name;
         this.description = description;
-        this.status = TaskStatus.NEW;
+        this.status = status;
     }
 
     public long getId() {

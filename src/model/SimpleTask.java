@@ -3,8 +3,8 @@ package model;
 public class SimpleTask extends Task {
     public SimpleTask() {
     }
-    public SimpleTask(String name, String description) {
-        super(name, description);
+    public SimpleTask(String name, String description, TaskStatus status) {
+        super(name, description, status);
     }
 
     @Override

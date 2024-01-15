@@ -4,14 +4,14 @@ import service.TaskManager;
 public class Main {
     public static void main(String[] args) {
         TaskManager manager = new TaskManager();
-        SimpleTask simple1 = manager.createSimpleTask(new SimpleTask("Simple task 1", "Simple description 1"));
-        Epic epic1 = manager.createEpicTask(new Epic("Epic name 1", "Epic descr 1"));
-        SimpleTask simple2 = manager.createSimpleTask(new SimpleTask("Simple task 2", "Simple description 2"));
-        Epic epic2 = manager.createEpicTask(new Epic("Epic name 2", "Epic descr 2"));
+        SimpleTask simple1 = manager.createSimpleTask(new SimpleTask("Simple task 1", "Simple description 1", TaskStatus.NEW));
+        Epic epic1 = manager.createEpicTask(new Epic("Epic name 1", "Epic descr 1", TaskStatus.NEW));
+        SimpleTask simple2 = manager.createSimpleTask(new SimpleTask("Simple task 2", "Simple description 2", TaskStatus.NEW));
+        Epic epic2 = manager.createEpicTask(new Epic("Epic name 2", "Epic descr 2", TaskStatus.NEW));
         System.out.println("Только созданный эпик");
         System.out.println(epic1);
-        SubTask subtask1 = manager.createSubTask(new SubTask("subtask name 1", "subtask description 1", epic1));
-        SubTask subtask2 = manager.createSubTask(new SubTask("subtask name2", "subtask description2", epic1));
+        SubTask subtask1 = manager.createSubTask(new SubTask("subtask name 1", "subtask description 1", TaskStatus.NEW, epic1.getId()));
+        SubTask subtask2 = manager.createSubTask(new SubTask("subtask name2", "subtask description2", TaskStatus.NEW, epic1.getId()));
 
         System.out.println("Эпик с добавленными в него подзадачами");
         System.out.println(epic1);
@@ -29,9 +29,8 @@ public class Main {
         System.out.println();
 
         System.out.println("Список простых задач после изменения задачи");
-        SimpleTask newSimple = new SimpleTask("NEW Simple task", "NEW Simple description");
+        SimpleTask newSimple = new SimpleTask("NEW Simple task", "NEW Simple description", TaskStatus.IN_PROGRESS);
         newSimple.setId(simple2.getId());
-        newSimple.setStatus(TaskStatus.IN_PROGRESS);
         manager.updateSimpleTask(newSimple);
         System.out.println(manager.getAllSimpleTasks());
         System.out.println();
