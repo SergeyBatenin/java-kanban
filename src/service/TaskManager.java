@@ -30,7 +30,7 @@ public class TaskManager {
             throw new RuntimeException("Подзадача не может существовать без эпика");
         }
 
-        taskParent.getSubTasks().add(task.getId());
+        taskParent.getSubTaskIds().add(task.getId());
         subTasks.put(task.getId(), task);
 
         return task;
@@ -43,23 +43,42 @@ public class TaskManager {
     }
 
     public Task updateSimpleTask(Task task) {
+        if (simpleTasks.get(task.getId()) == null) {
+            throw new RuntimeException("Такой задачи не существует");
+        }
+
         simpleTasks.put(task.getId(), task);
         return task;
     }
     public SubTask updateSubTask(SubTask task) {
-        updateEpicStatus(task.getEpicId());
+        if (subTasks.get(task.getId()) == null) {
+            throw new RuntimeException("Такой подзадачи не существует");
+        }
+        Epic epic = epicTasks.get(task.getEpicId());
+        if (epic == null) {
+            throw new RuntimeException("Эпика связанного с этой подзадачей не существует");
+        }
+
         subTasks.put(task.getId(), task);
+        updateEpicStatus(task.getEpicId());
         return task;
     }
     public Epic updateEpicTask(Epic task) {
-        updateEpicStatus(task.getId());
-        epicTasks.put(task.getId(), task);
+        Epic saved = epicTasks.get(task.getId());
+        if (saved == null) {
+            throw new RuntimeException("Такого эпика не существует");
+        }
+
+        saved.setName(task.getName());
+        saved.setDescription(task.getDescription());
+        epicTasks.put(saved.getId(), saved);
+
         return task;
     }
 
     private void updateEpicStatus(long epicId) {
         Epic epic = epicTasks.get(epicId);
-        List<Long> epicSubTasks = epic.getSubTasks();
+        List<Long> epicSubTasks = epic.getSubTaskIds();
         if(epicSubTasks.isEmpty()) {
             epic.setStatus(TaskStatus.NEW);
         } else {
@@ -92,7 +111,7 @@ public class TaskManager {
     }
     public List<SubTask> getAllSubTasksByEpic(Epic epic) {
         List<SubTask> subTaskList = new ArrayList<>();
-        List<Long> epicSubTasks = epic.getSubTasks();
+        List<Long> epicSubTasks = epic.getSubTaskIds();
         for (Long subtaskId : epicSubTasks) {
             subTaskList.add(subTasks.get(subtaskId));
         }
@@ -103,13 +122,10 @@ public class TaskManager {
         simpleTasks.clear();
     }
     public void removeAllSubTasks() {
-        Collection<SubTask> subtasks = subTasks.values();
-        for (SubTask task : subtasks) {
-            long parentId = task.getEpicId();
-            Epic subTaskParent = epicTasks.get(parentId);
-            List<Long> parentSubtasks = subTaskParent.getSubTasks();
-            parentSubtasks.remove(task.getId());
-            updateEpicStatus(parentId);
+        Collection<Epic> epics = epicTasks.values();
+        for (Epic epic : epics) {
+            epic.getSubTaskIds().clear();
+            updateEpicStatus(epic.getId());
         }
 
         subTasks.clear();
@@ -130,23 +146,35 @@ public class TaskManager {
     }
 
     public void removeSimpleTaskById(long id) {
-        simpleTasks.remove(id);
+        Task removedTask = simpleTasks.remove(id);
+        if (removedTask == null) {
+            throw new RuntimeException("Задачи с айди {" + id + "} не существует");
+        }
     }
     public void removeSubTaskById(long id) {
-        SubTask subtask = subTasks.get(id);
-        long parentId = subtask.getEpicId();
+        SubTask removedSubtask = subTasks.remove(id);
+        if (removedSubtask == null) {
+            throw new RuntimeException("Подзадачи с айди {" + id + "} не существует");
+        }
+
+        long parentId = removedSubtask.getEpicId();
         Epic parent = epicTasks.get(parentId);
-        List<Long> parentSubTasks = parent.getSubTasks();
-        parentSubTasks.remove(id);
-        subTasks.remove(id);
+        if (parent == null) {
+            throw new RuntimeException("Эпика связанного с этой подзадачей не существует");
+        }
+
+        parent.getSubTaskIds().remove(id);
         updateEpicStatus(parentId);
     }
     public void removeEpicTaskById(long id) {
-        Epic epic = epicTasks.get(id);
-        List<Long> epicSubTasks = epic.getSubTasks();
-        for (long subtaskId : epicSubTasks) {
-            subTasks.remove(subtaskId);
+        Epic removedEpic = epicTasks.remove(id);
+        if (removedEpic == null) {
+            throw new RuntimeException("Эпика с айди {" + id + "} не существует");
         }
-        epicTasks.remove(id);
+
+        List<Long> epicSubTasks = removedEpic.getSubTaskIds();
+        for (long subTaskId : epicSubTasks) {
+            subTasks.remove(subTaskId);
+        }
     }
 }
