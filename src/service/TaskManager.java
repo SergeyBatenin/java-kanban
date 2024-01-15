@@ -21,32 +21,25 @@ public class TaskManager {
         simpleTasks.put(task.getId(), task);
         return task;
     }
-    public SubTask createSubTask(Task task) {
-        SubTask subTask = new SubTask();
-        subTask.setId(++taskIdentifier);
-        subTask.setName(task.getName());
-        subTask.setDescription(task.getDescription());
-        subTask.setStatus(TaskStatus.NEW);
-        if (task instanceof SubTask) {
-            long parentId = ((SubTask) task).getEpicId();
-            subTask.setEpicId(parentId);
-            epicTasks.get(parentId).getSubTasks().add(subTask.getId());
-        } else {
+    public SubTask createSubTask(SubTask task) {
+        task.setId(++taskIdentifier);
+
+        long parentId = task.getEpicId();
+        Epic taskParent = epicTasks.get(parentId);
+        if (taskParent == null) {
             throw new RuntimeException("Подзадача не может существовать без эпика");
         }
 
-        subTasks.put(subTask.getId(), subTask);
-        return subTask;
-    }
-    public Epic createEpicTask(Task task) {
-        Epic epicTask = new Epic();
-        epicTask.setId(++taskIdentifier);
-        epicTask.setName(task.getName());
-        epicTask.setDescription(task.getDescription());
-        epicTask.setStatus(TaskStatus.NEW);
+        taskParent.getSubTasks().add(task.getId());
+        subTasks.put(task.getId(), task);
 
-        epicTasks.put(epicTask.getId(), epicTask);
-        return epicTask;
+        return task;
+    }
+    public Epic createEpicTask(Epic task) {
+        task.setId(++taskIdentifier);
+        epicTasks.put(task.getId(), task);
+
+        return task;
     }
 
     public Task updateSimpleTask(Task task) {
