@@ -2,7 +2,7 @@ package model;
 
 import java.util.Objects;
 
-public abstract class Task {
+public class Task {
     protected long id;
     protected String name;
     protected String description;
@@ -69,5 +69,15 @@ public abstract class Task {
         result = 31 * result + (description != null ? description.hashCode() : 0);
         result = 31 * result + status.hashCode();
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "Task{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", status=" + status +
+                '}';
     }
 }

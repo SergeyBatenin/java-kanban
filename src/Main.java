@@ -4,9 +4,9 @@ import service.TaskManager;
 public class Main {
     public static void main(String[] args) {
         TaskManager manager = new TaskManager();
-        SimpleTask simple1 = manager.createSimpleTask(new SimpleTask("Simple task 1", "Simple description 1", TaskStatus.NEW));
+        Task simple1 = manager.createSimpleTask(new Task("Simple task 1", "Simple description 1", TaskStatus.NEW));
         Epic epic1 = manager.createEpicTask(new Epic("Epic name 1", "Epic descr 1", TaskStatus.NEW));
-        SimpleTask simple2 = manager.createSimpleTask(new SimpleTask("Simple task 2", "Simple description 2", TaskStatus.NEW));
+        Task simple2 = manager.createSimpleTask(new Task("Simple task 2", "Simple description 2", TaskStatus.NEW));
         Epic epic2 = manager.createEpicTask(new Epic("Epic name 2", "Epic descr 2", TaskStatus.NEW));
         System.out.println("Только созданный эпик");
         System.out.println(epic1);
@@ -29,7 +29,7 @@ public class Main {
         System.out.println();
 
         System.out.println("Список простых задач после изменения задачи");
-        SimpleTask newSimple = new SimpleTask("NEW Simple task", "NEW Simple description", TaskStatus.IN_PROGRESS);
+        Task newSimple = new Task("NEW Simple task", "NEW Simple description", TaskStatus.IN_PROGRESS);
         newSimple.setId(simple2.getId());
         manager.updateSimpleTask(newSimple);
         System.out.println(manager.getAllSimpleTasks());

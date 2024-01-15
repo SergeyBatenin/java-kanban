@@ -6,7 +6,7 @@ import java.util.*;
 
 public class TaskManager {
     private static long taskIdentifier = 0;
-    private final Map<Long, SimpleTask> simpleTasks;
+    private final Map<Long, Task> simpleTasks;
     private final Map<Long, SubTask> subTasks;
     private final Map<Long, Epic> epicTasks;
 
@@ -16,15 +16,10 @@ public class TaskManager {
         epicTasks = new HashMap<>();
     }
 
-    public SimpleTask createSimpleTask(Task task) {
-        SimpleTask simpleTask = new SimpleTask();
-        simpleTask.setId(++taskIdentifier);
-        simpleTask.setName(task.getName());
-        simpleTask.setDescription(task.getDescription());
-        simpleTask.setStatus(TaskStatus.NEW);
-
-        simpleTasks.put(simpleTask.getId(), simpleTask);
-        return simpleTask;
+    public Task createSimpleTask(Task task) {
+        task.setId(++taskIdentifier);
+        simpleTasks.put(task.getId(), task);
+        return task;
     }
     public SubTask createSubTask(Task task) {
         SubTask subTask = new SubTask();
@@ -54,7 +49,7 @@ public class TaskManager {
         return epicTask;
     }
 
-    public SimpleTask updateSimpleTask(SimpleTask task) {
+    public Task updateSimpleTask(Task task) {
         simpleTasks.put(task.getId(), task);
         return task;
     }
@@ -93,7 +88,7 @@ public class TaskManager {
         }
     }
 
-    public List<SimpleTask> getAllSimpleTasks() {
+    public List<Task> getAllSimpleTasks() {
         return new ArrayList<>(simpleTasks.values());
     }
     public List<SubTask> getAllSubTasks() {
@@ -134,7 +129,7 @@ public class TaskManager {
         epicTasks.clear();
     }
 
-    public SimpleTask getSimpleTaskById(long id) {
+    public Task getSimpleTaskById(long id) {
         return simpleTasks.get(id);
     }
     public SubTask getSubTaskById(long id) {
