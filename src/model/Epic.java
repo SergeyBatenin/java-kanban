@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Epic extends Task {
-    private List<SubTask> subTasks;
+    private List<Long> subTasks;
 
     public Epic() {
         this.subTasks = new ArrayList<>();
@@ -15,11 +15,11 @@ public class Epic extends Task {
         this.subTasks = new ArrayList<>();
     }
 
-    public List<SubTask> getSubTasks() {
+    public List<Long> getSubTasks() {
         return subTasks;
     }
 
-    public void setSubTasks(List<SubTask> subTasks) {
+    public void setSubTasks(List<Long> subTasks) {
         this.subTasks = subTasks;
     }
 
@@ -35,8 +35,8 @@ public class Epic extends Task {
         if (subTasks.isEmpty()) {
             result.append("Empty}");
         } else {
-            for (SubTask subTask : subTasks) {
-                result.append('\'').append(subTask.name).append("',");
+            for (long id : subTasks) {
+                result.append('\'').append(id).append("',");
             }
             result.setCharAt(result.length() - 1, '}');
         }

@@ -30,7 +30,7 @@ public class TaskManager {
         if (task instanceof SubTask) {
             long parentId = ((SubTask) task).getEpicId();
             subTask.setEpicId(parentId);
-            epicTasks.get(parentId).getSubTasks().add(subTask);
+            epicTasks.get(parentId).getSubTasks().add(subTask.getId());
         } else {
             throw new RuntimeException("Подзадача не может существовать без эпика");
         }
@@ -66,13 +66,13 @@ public class TaskManager {
 
     private void updateEpicStatus(long epicId) {
         Epic epic = epicTasks.get(epicId);
-        List<SubTask> epicSubTasks = epic.getSubTasks();
+        List<Long> epicSubTasks = epic.getSubTasks();
         if(epicSubTasks.isEmpty()) {
             epic.setStatus(TaskStatus.NEW);
         } else {
             int countTaskWithNewStatus = 0;
-            for (SubTask task : epicSubTasks) {
-                TaskStatus status = task.getStatus();
+            for (long taskId : epicSubTasks) {
+                TaskStatus status = subTasks.get(taskId).getStatus();
                 if (status == TaskStatus.IN_PROGRESS) {
                     epic.setStatus(TaskStatus.IN_PROGRESS);
                     return;
@@ -98,7 +98,12 @@ public class TaskManager {
         return new ArrayList<>(epicTasks.values());
     }
     public List<SubTask> getAllSubTasksByEpic(Epic epic) {
-        return epic.getSubTasks();
+        List<SubTask> subTaskList = new ArrayList<>();
+        List<Long> epicSubTasks = epic.getSubTasks();
+        for (Long subtaskId : epicSubTasks) {
+            subTaskList.add(subTasks.get(subtaskId));
+        }
+        return subTaskList;
     }
 
     public void removeAllSimpleTasks() {
@@ -109,23 +114,15 @@ public class TaskManager {
         for (SubTask task : subtasks) {
             long parentId = task.getEpicId();
             Epic subTaskParent = epicTasks.get(parentId);
-            List<SubTask> parentSubtasks = subTaskParent.getSubTasks();
-            parentSubtasks.remove(task);
+            List<Long> parentSubtasks = subTaskParent.getSubTasks();
+            parentSubtasks.remove(task.getId());
             updateEpicStatus(parentId);
         }
 
         subTasks.clear();
     }
     public void removeAllEpicTasks() {
-        Collection<Epic> epics = epicTasks.values();
-        for (Epic epic : epics) {
-            List<SubTask> subTasksEpic = epic.getSubTasks();
-            for (SubTask subTaskEpic : subTasksEpic) {
-                subTasks.remove(subTaskEpic.getId());
-            }
-        }
-        // Не уверен конечно в целесообразности верхних циклов. По идее, если не будет эпиков, то и подзадач
-        // тоже не должно существовать и можно просто очищать мапу с ними
+        subTasks.clear();
         epicTasks.clear();
     }
 
@@ -146,16 +143,16 @@ public class TaskManager {
         SubTask subtask = subTasks.get(id);
         long parentId = subtask.getEpicId();
         Epic parent = epicTasks.get(parentId);
-        List<SubTask> parentSubTasks = parent.getSubTasks();
-        parentSubTasks.remove(subtask);
+        List<Long> parentSubTasks = parent.getSubTasks();
+        parentSubTasks.remove(id);
         subTasks.remove(id);
         updateEpicStatus(parentId);
     }
     public void removeEpicTaskById(long id) {
         Epic epic = epicTasks.get(id);
-        List<SubTask> epicSubTasks = epic.getSubTasks();
-        for (SubTask epicSubTask : epicSubTasks) {
-            subTasks.remove(epicSubTask.getId());
+        List<Long> epicSubTasks = epic.getSubTasks();
+        for (long subtaskId : epicSubTasks) {
+            subTasks.remove(subtaskId);
         }
         epicTasks.remove(id);
     }
