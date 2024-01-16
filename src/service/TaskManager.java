@@ -31,6 +31,7 @@ public class TaskManager {
         }
 
         taskParent.getSubTaskIds().add(task.getId());
+        updateEpicStatus(parentId);
         subTasks.put(task.getId(), task);
 
         return task;
