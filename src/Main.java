@@ -1,9 +1,9 @@
 import model.*;
-import service.TaskManager;
+import service.InMemoryTaskService;
 
 public class Main {
     public static void main(String[] args) {
-        TaskManager manager = new TaskManager();
+        InMemoryTaskService manager = new InMemoryTaskService();
         Task simple1 = manager.createSimpleTask(new Task("Simple task 1", "Simple description 1", TaskStatus.NEW));
         Epic epic1 = manager.createEpicTask(new Epic("Epic name 1", "Epic descr 1", TaskStatus.NEW));
         Task simple2 = manager.createSimpleTask(new Task("Simple task 2", "Simple description 2", TaskStatus.NEW));

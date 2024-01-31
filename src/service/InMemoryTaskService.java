@@ -4,13 +4,13 @@ import model.*;
 
 import java.util.*;
 
-public class TaskManager {
+public class InMemoryTaskService {
     private static long taskIdentifier = 0;
     private final Map<Long, Task> simpleTasks;
     private final Map<Long, SubTask> subTasks;
     private final Map<Long, Epic> epicTasks;
 
-    public TaskManager() {
+    public InMemoryTaskService() {
         simpleTasks = new HashMap<>();
         subTasks = new HashMap<>();
         epicTasks = new HashMap<>();
@@ -31,8 +31,8 @@ public class TaskManager {
         }
 
         taskParent.getSubTaskIds().add(task.getId());
-        updateEpicStatus(parentId);
         subTasks.put(task.getId(), task);
+        updateEpicStatus(parentId);
 
         return task;
     }
