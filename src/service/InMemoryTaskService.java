@@ -4,7 +4,7 @@ import model.*;
 
 import java.util.*;
 
-public class InMemoryTaskService {
+public class InMemoryTaskService implements TaskService {
     private static long taskIdentifier = 0;
     private final Map<Long, Task> simpleTasks;
     private final Map<Long, SubTask> subTasks;
@@ -16,11 +16,13 @@ public class InMemoryTaskService {
         epicTasks = new HashMap<>();
     }
 
+    @Override
     public Task createSimpleTask(Task task) {
         task.setId(++taskIdentifier);
         simpleTasks.put(task.getId(), task);
         return task;
     }
+    @Override
     public SubTask createSubTask(SubTask task) {
         task.setId(++taskIdentifier);
 
@@ -36,6 +38,7 @@ public class InMemoryTaskService {
 
         return task;
     }
+    @Override
     public Epic createEpicTask(Epic task) {
         task.setId(++taskIdentifier);
         epicTasks.put(task.getId(), task);
@@ -43,6 +46,7 @@ public class InMemoryTaskService {
         return task;
     }
 
+    @Override
     public Task updateSimpleTask(Task task) {
         if (simpleTasks.get(task.getId()) == null) {
             throw new RuntimeException("Такой задачи не существует");
@@ -51,6 +55,7 @@ public class InMemoryTaskService {
         simpleTasks.put(task.getId(), task);
         return task;
     }
+    @Override
     public SubTask updateSubTask(SubTask task) {
         if (subTasks.get(task.getId()) == null) {
             throw new RuntimeException("Такой подзадачи не существует");
@@ -64,6 +69,7 @@ public class InMemoryTaskService {
         updateEpicStatus(task.getEpicId());
         return task;
     }
+    @Override
     public Epic updateEpicTask(Epic task) {
         Epic saved = epicTasks.get(task.getId());
         if (saved == null) {
@@ -101,15 +107,19 @@ public class InMemoryTaskService {
         }
     }
 
+    @Override
     public List<Task> getAllSimpleTasks() {
         return new ArrayList<>(simpleTasks.values());
     }
+    @Override
     public List<SubTask> getAllSubTasks() {
         return new ArrayList<>(subTasks.values());
     }
+    @Override
     public List<Epic> getAllEpicTasks() {
         return new ArrayList<>(epicTasks.values());
     }
+    @Override
     public List<SubTask> getAllSubTasksByEpic(Epic epic) {
         List<SubTask> subTaskList = new ArrayList<>();
         List<Long> epicSubTasks = epic.getSubTaskIds();
@@ -119,9 +129,11 @@ public class InMemoryTaskService {
         return subTaskList;
     }
 
+    @Override
     public void removeAllSimpleTasks() {
         simpleTasks.clear();
     }
+    @Override
     public void removeAllSubTasks() {
         Collection<Epic> epics = epicTasks.values();
         for (Epic epic : epics) {
@@ -131,27 +143,33 @@ public class InMemoryTaskService {
 
         subTasks.clear();
     }
+    @Override
     public void removeAllEpicTasks() {
         subTasks.clear();
         epicTasks.clear();
     }
 
+    @Override
     public Task getSimpleTaskById(long id) {
         return simpleTasks.get(id);
     }
+    @Override
     public SubTask getSubTaskById(long id) {
         return subTasks.get(id);
     }
+    @Override
     public Epic getEpicTaskById(long id) {
         return epicTasks.get(id);
     }
 
+    @Override
     public void removeSimpleTaskById(long id) {
         Task removedTask = simpleTasks.remove(id);
         if (removedTask == null) {
             throw new RuntimeException("Задачи с айди {" + id + "} не существует");
         }
     }
+    @Override
     public void removeSubTaskById(long id) {
         SubTask removedSubtask = subTasks.remove(id);
         if (removedSubtask == null) {
@@ -167,6 +185,7 @@ public class InMemoryTaskService {
         parent.getSubTaskIds().remove(id);
         updateEpicStatus(parentId);
     }
+    @Override
     public void removeEpicTaskById(long id) {
         Epic removedEpic = epicTasks.remove(id);
         if (removedEpic == null) {
