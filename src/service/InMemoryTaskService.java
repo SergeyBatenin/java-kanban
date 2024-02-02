@@ -1,6 +1,9 @@
 package service;
 
-import model.*;
+import model.Epic;
+import model.SubTask;
+import model.Task;
+import model.TaskStatus;
 
 import java.util.*;
 
@@ -9,11 +12,13 @@ public class InMemoryTaskService implements TaskService {
     private final Map<Long, Task> simpleTasks;
     private final Map<Long, SubTask> subTasks;
     private final Map<Long, Epic> epicTasks;
+    private final HistoryManager historyManager;
 
-    public InMemoryTaskService() {
+    public InMemoryTaskService(HistoryManager historyManager) {
         simpleTasks = new HashMap<>();
         subTasks = new HashMap<>();
         epicTasks = new HashMap<>();
+        this.historyManager = historyManager;
     }
 
     @Override
@@ -151,14 +156,17 @@ public class InMemoryTaskService implements TaskService {
 
     @Override
     public Task getSimpleTaskById(long id) {
+        historyManager.add(simpleTasks.get(id));
         return simpleTasks.get(id);
     }
     @Override
     public SubTask getSubTaskById(long id) {
+        historyManager.add(subTasks.get(id));
         return subTasks.get(id);
     }
     @Override
     public Epic getEpicTaskById(long id) {
+        historyManager.add(epicTasks.get(id));
         return epicTasks.get(id);
     }
 
@@ -196,5 +204,10 @@ public class InMemoryTaskService implements TaskService {
         for (long subTaskId : epicSubTasks) {
             subTasks.remove(subTaskId);
         }
+    }
+
+    @Override
+    public List<Task> getHistory() {
+        return historyManager.getHistory();
     }
 }

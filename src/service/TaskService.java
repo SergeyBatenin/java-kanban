@@ -26,6 +26,5 @@ public interface TaskService {
     void removeSimpleTaskById(long id);
     void removeSubTaskById(long id);
     void removeEpicTaskById(long id);
-
-
+    List<Task> getHistory();
 }

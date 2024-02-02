@@ -1,10 +1,14 @@
-import model.*;
+import model.Epic;
+import model.SubTask;
+import model.Task;
+import model.TaskStatus;
+import service.InMemoryHistoryService;
 import service.InMemoryTaskService;
 import service.TaskService;
 
 public class Main {
     public static void main(String[] args) {
-        TaskService manager = new InMemoryTaskService();
+        TaskService manager = new InMemoryTaskService(new InMemoryHistoryService());
         Task simple1 = manager.createSimpleTask(new Task("Simple task 1", "Simple description 1", TaskStatus.NEW));
         Epic epic1 = manager.createEpicTask(new Epic("Epic name 1", "Epic descr 1", TaskStatus.NEW));
         Task simple2 = manager.createSimpleTask(new Task("Simple task 2", "Simple description 2", TaskStatus.NEW));
@@ -68,5 +72,26 @@ public class Main {
         System.out.println(manager.getAllEpicTasks());
         System.out.println();
 
+        System.out.println("Смотрим историю когда она пустая");
+        System.out.println(manager.getHistory());
+        System.out.println();
+
+        System.out.println("Смотрим историю когда смотрели несколько задач");
+        manager.getSimpleTaskById(3); // 1 просмотр
+        manager.getEpicTaskById(4); // 2 просмотр
+        System.out.println(manager.getHistory());
+        System.out.println();
+
+        System.out.println("Смотрим историю после того как просмотрели больше 10 задач");
+        manager.getSimpleTaskById(3); // 3 просмотр
+        manager.getEpicTaskById(4); // 4 просмотр
+        manager.getSimpleTaskById(3); // 5 просмотр
+        manager.getEpicTaskById(4); // 6 просмотр
+        manager.getSimpleTaskById(3); // 7 просмотр
+        manager.getEpicTaskById(4); // 8 просмотр
+        manager.getSimpleTaskById(3); // 9 просмотр
+        manager.getEpicTaskById(4); // 10 просмотр
+        manager.getSimpleTaskById(3); // 11 просмотр
+        System.out.println(manager.getHistory());
     }
 }
