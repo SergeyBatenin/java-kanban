@@ -12,9 +12,9 @@ public class InMemoryTaskService implements TaskService {
     private final Map<Long, Task> simpleTasks;
     private final Map<Long, SubTask> subTasks;
     private final Map<Long, Epic> epicTasks;
-    private final HistoryManager historyManager;
+    private final HistoryService historyManager;
 
-    public InMemoryTaskService(HistoryManager historyManager) {
+    public InMemoryTaskService(HistoryService historyManager) {
         simpleTasks = new HashMap<>();
         subTasks = new HashMap<>();
         epicTasks = new HashMap<>();

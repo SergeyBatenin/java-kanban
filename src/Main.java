@@ -5,10 +5,11 @@ import model.TaskStatus;
 import service.InMemoryHistoryService;
 import service.InMemoryTaskService;
 import service.TaskService;
+import service.TaskServiceFactory;
 
 public class Main {
     public static void main(String[] args) {
-        TaskService manager = new InMemoryTaskService(new InMemoryHistoryService());
+        TaskService manager = TaskServiceFactory.getDefault();
         Task simple1 = manager.createSimpleTask(new Task("Simple task 1", "Simple description 1", TaskStatus.NEW));
         Epic epic1 = manager.createEpicTask(new Epic("Epic name 1", "Epic descr 1", TaskStatus.NEW));
         Task simple2 = manager.createSimpleTask(new Task("Simple task 2", "Simple description 2", TaskStatus.NEW));
