@@ -156,18 +156,21 @@ public class InMemoryTaskService implements TaskService {
 
     @Override
     public Task getSimpleTaskById(long id) {
-        historyManager.add(simpleTasks.get(id));
-        return simpleTasks.get(id);
+        final Task task = simpleTasks.get(id);
+        historyManager.add(task);
+        return task;
     }
     @Override
     public SubTask getSubTaskById(long id) {
-        historyManager.add(subTasks.get(id));
-        return subTasks.get(id);
+        final SubTask subtask = subTasks.get(id);
+        historyManager.add(subtask);
+        return subtask;
     }
     @Override
     public Epic getEpicTaskById(long id) {
-        historyManager.add(epicTasks.get(id));
-        return epicTasks.get(id);
+        final Epic epic = epicTasks.get(id);
+        historyManager.add(epic);
+        return epic;
     }
 
     @Override
