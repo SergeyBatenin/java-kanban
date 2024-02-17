@@ -136,6 +136,7 @@ public class InMemoryTaskService implements TaskService {
 
     @Override
     public void removeAllSimpleTasks() {
+        simpleTasks.values().forEach(task -> historyManager.remove(task.getId()));
         simpleTasks.clear();
     }
     @Override
@@ -145,12 +146,14 @@ public class InMemoryTaskService implements TaskService {
             epic.getSubTaskIds().clear();
             updateEpicStatus(epic.getId());
         }
-
+        subTasks.values().forEach(task -> historyManager.remove(task.getId()));
         subTasks.clear();
     }
     @Override
     public void removeAllEpicTasks() {
+        subTasks.values().forEach(task -> historyManager.remove(task.getId()));
         subTasks.clear();
+        epicTasks.values().forEach(task -> historyManager.remove(task.getId()));
         epicTasks.clear();
     }
 
@@ -179,6 +182,7 @@ public class InMemoryTaskService implements TaskService {
         if (removedTask == null) {
             throw new RuntimeException("Задачи с айди {" + id + "} не существует");
         }
+        historyManager.remove(id);
     }
     @Override
     public void removeSubTaskById(long id) {
@@ -186,6 +190,7 @@ public class InMemoryTaskService implements TaskService {
         if (removedSubtask == null) {
             throw new RuntimeException("Подзадачи с айди {" + id + "} не существует");
         }
+        historyManager.remove(id);
 
         long parentId = removedSubtask.getEpicId();
         Epic parent = epicTasks.get(parentId);
@@ -202,10 +207,12 @@ public class InMemoryTaskService implements TaskService {
         if (removedEpic == null) {
             throw new RuntimeException("Эпика с айди {" + id + "} не существует");
         }
+        historyManager.remove(id);
 
         List<Long> epicSubTasks = removedEpic.getSubTaskIds();
         for (long subTaskId : epicSubTasks) {
             subTasks.remove(subTaskId);
+            historyManager.remove(subTaskId);
         }
     }
 

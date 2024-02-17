@@ -81,16 +81,31 @@ public class Main {
         System.out.println(manager.getHistory());
         System.out.println();
 
-        System.out.println("Смотрим историю после того как просмотрели больше 10 задач");
+        Epic epic3 = manager.createEpicTask(new Epic("Epic name 3", "Epic descr 3", TaskStatus.NEW));
+        SubTask subtask3 = manager.createSubTask(new SubTask("subtask name 1", "subtask description 1", TaskStatus.NEW, epic3.getId()));
+        SubTask subtask4 = manager.createSubTask(new SubTask("subtask name2", "subtask description2", TaskStatus.NEW, epic3.getId()));
+        Epic epic4 = manager.createEpicTask(new Epic("Epic name 3", "Epic descr 3", TaskStatus.NEW));
+
+        System.out.println("Смотрим историю после того как просмотрели некоторые задачи повторно");
         manager.getSimpleTaskById(3); // 3 просмотр
         manager.getEpicTaskById(4); // 4 просмотр
-        manager.getSimpleTaskById(3); // 5 просмотр
-        manager.getEpicTaskById(4); // 6 просмотр
-        manager.getSimpleTaskById(3); // 7 просмотр
-        manager.getEpicTaskById(4); // 8 просмотр
-        manager.getSimpleTaskById(3); // 9 просмотр
-        manager.getEpicTaskById(4); // 10 просмотр
-        manager.getSimpleTaskById(3); // 11 просмотр
+        manager.getSubTaskById(subtask4.getId()); // 5 просмотр
+        manager.getSubTaskById(subtask3.getId()); // 6 просмотр
+        manager.getEpicTaskById(epic3.getId()); // 7 просмотр
+        manager.getSimpleTaskById(3); // 8 просмотр (повторный)
+        manager.getEpicTaskById(4); // 9 просмотр(повторный)
+        manager.getEpicTaskById(epic4.getId()); // 10 просмотр
         System.out.println(manager.getHistory());
+        System.out.println();
+
+        System.out.println("Смотрим историю после удаления эпика без подзадач");
+        manager.removeEpicTaskById(epic4.getId());
+        System.out.println(manager.getHistory());
+        System.out.println();
+
+        System.out.println("Смотрим историю после удаления всех эпиков");
+        manager.removeAllEpicTasks();
+        System.out.println(manager.getHistory());
+        System.out.println();
     }
 }
