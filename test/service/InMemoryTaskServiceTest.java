@@ -18,7 +18,7 @@ class InMemoryTaskServiceTest {
 
     @BeforeEach
     void initializeTaskService() {
-        taskService = new InMemoryTaskService(new InMemoryHistoryService());
+        taskService = new InMemoryTaskService();
     }
 
     @Test

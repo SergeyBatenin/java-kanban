@@ -14,11 +14,11 @@ public class InMemoryTaskService implements TaskService {
     private final Map<Long, Epic> epicTasks;
     private final HistoryService historyManager;
 
-    public InMemoryTaskService(HistoryService historyManager) {
+    public InMemoryTaskService() {
         simpleTasks = new HashMap<>();
         subTasks = new HashMap<>();
         epicTasks = new HashMap<>();
-        this.historyManager = historyManager;
+        this.historyManager = ServiceFactory.getDefaultHistoryService();
     }
 
     @Override
