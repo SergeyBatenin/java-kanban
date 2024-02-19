@@ -7,9 +7,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class InMemoryHistoryService  implements HistoryService {
+public class InMemoryHistoryService implements HistoryService {
     private final CustomLinkedList history;
     private final Map<Long, Node> taskCache;
+
     public InMemoryHistoryService() {
         this.history = new CustomLinkedList();
         this.taskCache = new HashMap<>();

@@ -7,6 +7,7 @@ public class ServiceFactory {
     public static TaskService getDefaultTaskService() {
         return taskService;
     }
+
     public static HistoryService getDefaultHistoryService() {
         return historyService;
     }
