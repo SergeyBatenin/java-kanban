@@ -1,5 +1,7 @@
 package service;
 
+import model.Epic;
+import model.SubTask;
 import model.Task;
 import model.TaskStatus;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +16,9 @@ import static org.junit.jupiter.api.Assertions.*;
 class InMemoryHistoryServiceTest {
 
     private HistoryService historyService;
+    private Task task = new Task(1, "name", "description", TaskStatus.NEW);
+    private Epic epic = new Epic(2, "name", "description", TaskStatus.NEW);
+    private SubTask subtask = new SubTask(3, "name", "description", TaskStatus.NEW, 2);
 
     @BeforeEach
     void initializeHistoryService() {
@@ -23,54 +28,75 @@ class InMemoryHistoryServiceTest {
     @Test
     @DisplayName("Проверка размера списка при добавлении нескольких задач")
     void shouldReturn3AfterAddingThreeTasks() {
-        Task task1 = new Task("name1", "description1", TaskStatus.NEW);
-        task1.setId(1);
-        Task task2 = new Task("name2", "description2", TaskStatus.NEW);
-        task1.setId(2);
-        Task task3 = new Task("name3", "description3", TaskStatus.NEW);
-        task1.setId(3);
+        historyService.add(task);
+        historyService.add(epic);
+        historyService.add(subtask);
 
-        historyService.add(task1);
-        historyService.add(task2);
-        historyService.add(task3);
+        final List<Task> history = historyService.getHistory();
 
-        assertNotNull(historyService.getHistory(), "История не существует");
-        assertEquals(3, historyService.getHistory().size(), "Размер списка не совпадает");
+        assertNotNull(history, "История не существует");
+        assertEquals(3, history.size(), "Размер списка не совпадает");
     }
 
     @Test
-    @DisplayName("Проверка размера списка при добавлении максимума задач")
-    void shouldReturn10AfterAddingTenTasks() {
-        Task task1 = new Task("name1", "description1", TaskStatus.NEW);
-        task1.setId(1);
-
+    @DisplayName("Проверка размера списка при повторном добавлении одной и той же задачи")
+    void shouldReturn1AfterAddingTheSameTask() {
         for (int i = 0; i < 10; i++) {
-            historyService.add(task1);
+            historyService.add(task);
         }
 
         assertNotNull(historyService.getHistory(), "История не существует");
-        assertEquals(10, historyService.getHistory().size(), "Размер списка не совпадает");
+        assertEquals(1, historyService.getHistory().size(), "Размер списка не совпадает");
     }
 
     @Test
-    @DisplayName("Проверка размера списка при добавлении задач больше максимального размера")
-    void shouldReturn10AfterAddingTasksAboveMaxSize() {
-        Task task1 = new Task("name1", "description1", TaskStatus.NEW);
-        task1.setId(1);
-        List<Task> list = new ArrayList<>();
+    @DisplayName("Проверка очередности задач в списке при добавлении задачи, которая уже находится в нем")
+    void shouldBeEqualsAfterAddingTaskThatExistsInHistory() {
+        List<Task> exptectedList = new ArrayList<>();
+        exptectedList.add(task);
+        exptectedList.add(subtask);
 
-        for (int i = 0; i < 10; i++) {
-            historyService.add(task1);
-            list.add(task1);
-        }
-
-        Task task2 = new Task("name1", "description1", TaskStatus.NEW);
-        task1.setId(2);
-        historyService.add(task2);
-        list.set(9, task2);
+        historyService.add(subtask);
+        historyService.add(task);
+        historyService.add(subtask);
 
         assertNotNull(historyService.getHistory(), "История не существует");
-        assertEquals(10, historyService.getHistory().size(), "Размер списка не совпадает");
-        assertEquals(list, historyService.getHistory(), "Список истории просмотров не совпадает");
+        assertEquals(2, historyService.getHistory().size(), "Размер списка не совпадает");
+        assertEquals(exptectedList, historyService.getHistory(), "Список истории просмотров не совпадает");
+    }
+
+    @Test
+    @DisplayName("Проверка удаления задачи из истории, которая в ней существует")
+    void shouldEqualsAfterDeletingTaskFromHistoryThatExists() {
+        List<Task> expectedList = List.of(task);
+
+        historyService.add(task);
+        historyService.add(subtask);
+        historyService.remove(subtask.getId());
+
+        final List<Task> history = historyService.getHistory();
+
+        assertNotNull(history, "История не существует");
+        assertEquals(1, history.size(), "Размер списка не совпадает");
+        assertEquals(expectedList, history, "Список истории просмотров не совпадает");
+    }
+
+    @Test
+    @DisplayName("Проверка списка после удаления задачи из середины списка")
+    void shouldBeEqualAfterRemovingTaskFromMiddleList() {
+        List<Task> expectedList = new ArrayList<>();
+        expectedList.add(task);
+        expectedList.add(epic);
+
+        historyService.add(task);
+        historyService.add(subtask);
+        historyService.add(epic);
+        historyService.remove(subtask.getId());
+
+        final List<Task> history = historyService.getHistory();
+
+        assertNotNull(history, "История не существует");
+        assertEquals(2, history.size(), "Размер списка не совпадает");
+        assertEquals(expectedList, history, "Список истории просмотров не совпадает");
     }
 }
