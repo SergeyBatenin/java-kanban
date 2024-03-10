@@ -4,16 +4,19 @@ public class SubTask extends Task {
     private long epicId;
 
     public SubTask() {
+        this.taskType = TaskType.SUBTASK;
     }
 
     public SubTask(int id, String name, String description, TaskStatus status, long epicId) {
         super(id, name, description, status);
         this.epicId = epicId;
+        this.taskType = TaskType.SUBTASK;
     }
 
     public SubTask(String name, String description, TaskStatus status, long epicId) {
         super(name, description, status);
         this.epicId = epicId;
+        this.taskType = TaskType.SUBTASK;
     }
 
     public long getEpicId() {

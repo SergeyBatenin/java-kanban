@@ -7,8 +7,10 @@ public class Task {
     protected String name;
     protected String description;
     protected TaskStatus status;
+    protected TaskType taskType;
 
     public Task() {
+        this.taskType = TaskType.TASK;
     }
 
     public Task(int id, String name, String description, TaskStatus status) {
@@ -16,12 +18,14 @@ public class Task {
         this.name = name;
         this.description = description;
         this.status = status;
+        this.taskType = TaskType.TASK;
     }
 
     public Task(String name, String description, TaskStatus status) {
         this.name = name;
         this.description = description;
         this.status = status;
+        this.taskType = TaskType.TASK;
     }
 
     public long getId() {
