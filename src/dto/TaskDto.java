@@ -1,6 +1,5 @@
 package dto;
 
-import model.Task;
 import model.TaskStatus;
 import model.TaskType;
 
@@ -10,17 +9,6 @@ public class TaskDto {
     protected String description;
     protected TaskStatus status;
     protected TaskType taskType;
-
-    public TaskDto() {
-    }
-
-    public TaskDto(Task task) {
-        this.id = task.getId();
-        this.name = task.getName();
-        this.description = task.getDescription();
-        this.status = task.getStatus();
-        this.taskType = task.getTaskType();
-    }
 
     public long getId() {
         return id;
@@ -60,10 +48,5 @@ public class TaskDto {
 
     public void setTaskType(TaskType taskType) {
         this.taskType = taskType;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("%d,%s,%s,%s,%s", id, taskType, name, status, description);
     }
 }
