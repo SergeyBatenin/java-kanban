@@ -9,6 +9,7 @@ import mapper.TaskMapper;
 import model.Epic;
 import model.SubTask;
 import model.Task;
+import model.TaskStatus;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -25,6 +26,19 @@ public class FileBackedTaskService extends InMemoryTaskService {
     public FileBackedTaskService() {
         super();
         load();
+    }
+
+    public static void main(String[] args) {
+        FileBackedTaskService f = new FileBackedTaskService();
+        System.out.println(f.getHistory());
+        Task task = f.createSimpleTask(new Task("task name", "task description", TaskStatus.NEW));
+        Epic epic = f.createEpicTask(new Epic("epic name", "epic description", TaskStatus.NEW));
+        SubTask subTask = f.createSubTask(new SubTask("subtask name", "subtask description", TaskStatus.NEW, epic.getId()));
+        f.getSimpleTaskById(task.getId());
+        f.getEpicTaskById(epic.getId());
+        f.getSubTaskById(subTask.getId());
+        System.out.println(f.getHistory());
+        f.save();
     }
 
     private void save() {
