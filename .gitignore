@@ -1,6 +1,7 @@
 # Compiled class file
 *.class
 out
+java-kanban.iml
 
 # Log file
 *.log
