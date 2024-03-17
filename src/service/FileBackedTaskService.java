@@ -13,36 +13,38 @@ import model.TaskStatus;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Collectors;
 
 public class FileBackedTaskService extends InMemoryTaskService {
-    private static final String BACKUP_FILENAME = "resources/backup.csv";
+    private final File backupFilename;
     private static final String DELIMITER = ",";
     private static final String FILE_HEADER = String.format("id%1$stype%1$sname%1$sstatus%1$sdescription%1$srelated", DELIMITER);
-    private static final int MIN_ROWS_IN_BACKUP = 4;
 
-    public FileBackedTaskService() {
+    public FileBackedTaskService(File file) {
         super();
-        load();
+        backupFilename = file;
     }
 
     public static void main(String[] args) {
-        FileBackedTaskService f = new FileBackedTaskService();
+        FileBackedTaskService firstBackupService = FileBackedTaskService.loadFromFile(new File("resources/backup.csv"));
+        FileBackedTaskService f = new FileBackedTaskService(new File("resources/backup.csv"));
+        System.out.println("history main manager");
         System.out.println(f.getHistory());
-        Task task = f.createSimpleTask(new Task("task name", "task description", TaskStatus.NEW));
-        Epic epic = f.createEpicTask(new Epic("epic name", "epic description", TaskStatus.NEW));
-        SubTask subTask = f.createSubTask(new SubTask("subtask name", "subtask description", TaskStatus.NEW, epic.getId()));
+        Task task = f.createSimpleTask(new Task("main task name", "main task description", TaskStatus.NEW));
+        Epic epic = f.createEpicTask(new Epic("main epic name", "main epic description", TaskStatus.NEW));
+        SubTask subTask = f.createSubTask(new SubTask("main subtask name", "main subtask description", TaskStatus.NEW, epic.getId()));
         f.getSimpleTaskById(task.getId());
         f.getEpicTaskById(epic.getId());
         f.getSubTaskById(subTask.getId());
         System.out.println(f.getHistory());
         f.save();
+        FileBackedTaskService secondBackupService = FileBackedTaskService.loadFromFile(new File("resources/backup.csv"));
+        System.out.println(f.getHistory().equals(firstBackupService.getHistory()));
+        System.out.println(f.getHistory().equals(secondBackupService.getHistory()));
     }
 
     private void save() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(BACKUP_FILENAME))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(backupFilename))) {
             writer.write(FILE_HEADER);
             writer.newLine();
             TaskDto taskDto;
@@ -78,68 +80,82 @@ public class FileBackedTaskService extends InMemoryTaskService {
         System.out.println("backup сделан");
     }
 
-    private void load() {
-        try (FileReader reader = new FileReader(BACKUP_FILENAME, StandardCharsets.UTF_8);
+    public static FileBackedTaskService loadFromFile(File file) {
+        try (FileReader reader = new FileReader(file, StandardCharsets.UTF_8);
              BufferedReader br = new BufferedReader(reader)) {
+            final FileBackedTaskService fileBackedTaskService = new FileBackedTaskService(file);
 
-
-            List<String> backup = new ArrayList<>();
-            String line;
-            while ((line = br.readLine()) != null) {
-                backup.add(line);
-            }
-            if (backup.size() < MIN_ROWS_IN_BACKUP) return;
-
-            int limitTasks = backup.size() - 3;
-            for (int i = 1; i < limitTasks; i++) {
-                restoreTask(backup.get(i));
+            br.readLine(); // пропускаем заголовок
+            String line = br.readLine();
+            if (line == null) {
+                throw new RuntimeException("Файл: " + file + " не содержит данные для восстановления задач.");
             }
 
-            String historyTasksLine = backup.get(limitTasks + 1);
-            if (!historyTasksLine.isEmpty()) {
-                String[] historyTaskIds = historyTasksLine.split(DELIMITER);
+            while (line != null && !line.isBlank()) {
+                restoreTask(fileBackedTaskService, line);
+                line = br.readLine();
+            }
 
+            line = br.readLine(); // читаем историю
+            if (line == null) {
+                throw new RuntimeException("Файл: " + file + " не содержит данные для восстановления истории");
+            }
+            if (!line.isBlank()) {
+                String[] historyTaskIds = line.split(DELIMITER);
                 for (String taskId : historyTaskIds) {
                     long id = Long.parseLong(taskId);
-                    restoreTaskForHistory(id);
+                    restoreTaskForHistory(fileBackedTaskService, id);
                 }
             }
 
-            taskIdentifier = Long.parseLong(backup.get(limitTasks + 2));
+            line = br.readLine(); // читаем последний id задач
+            if (line == null || line.isBlank()) {
+                throw new RuntimeException("Файл: \"" + file + "\" не содержит данные для восстановления идентификатора");
+            }
+            fileBackedTaskService.taskIdentifier = Long.parseLong(line);
             System.out.println("Бэкап успешно восстановлен");
+
+            return fileBackedTaskService;
+        } catch (NumberFormatException e) { // написать свои исключения на историю и идентификатор
+            throw new RuntimeException("Ошибка при восстановлении идентификатора задачи из файла: " + file, e);
         } catch (IOException e) {
-            throw new RuntimeException("Ошибка при восстановлении бэкапа из файла: " + BACKUP_FILENAME, e);
+            throw new RuntimeException("Ошибка при восстановлении бэкапа из файла: " + file, e);
         }
     }
 
-    private void restoreTask(String taskInfo) {
+    private static void restoreTask(FileBackedTaskService taskService, String taskInfo) {
+        if (taskInfo == null) {
+            throw new RuntimeException("Данные для восстановления задачи отсутствуют");
+        }
         String[] taskData = taskInfo.split(DELIMITER);
         switch (taskData[1]) {
             case "TASK":
                 TaskDto taskDto = TaskMapper.dtoFromData(taskData);
                 Task task = TaskMapper.dtoToTask(taskDto);
-                simpleTasks.put(task.getId(), task);
+                taskService.simpleTasks.put(task.getId(), task);
                 break;
             case "SUBTASK":
                 SubtaskDto subtaskDto = SubtaskMapper.dtoFromData(taskData);
                 SubTask subTask = SubtaskMapper.dtoToSubtask(subtaskDto);
-                subTasks.put(subTask.getId(), subTask);
+                taskService.subTasks.put(subTask.getId(), subTask);
                 break;
             case "EPIC":
                 EpicDto epicDto = EpicMapper.dtoFromData(taskData);
                 Epic epic = EpicMapper.dtoToEpic(epicDto);
-                epicTasks.put(epic.getId(), epic);
+                taskService.epicTasks.put(epic.getId(), epic);
                 break;
         }
     }
 
-    private void restoreTaskForHistory(long id) {
-        if (simpleTasks.containsKey(id)) {
-            historyManager.add(simpleTasks.get(id));
-        } else if (epicTasks.containsKey(id)) {
-            historyManager.add(epicTasks.get(id));
+    private static void restoreTaskForHistory(FileBackedTaskService taskService, long id) {
+        if (taskService.simpleTasks.containsKey(id)) {
+            taskService.historyManager.add(taskService.simpleTasks.get(id));
+        } else if (taskService.epicTasks.containsKey(id)) {
+            taskService.historyManager.add(taskService.epicTasks.get(id));
+        } else if (taskService.subTasks.containsKey(id)) {
+            taskService.historyManager.add((taskService.subTasks.get(id)));
         } else {
-            historyManager.add((subTasks.get(id)));
+            throw new RuntimeException("Ошибка восстановления истории. Менеджер не содержит такую задачу");
         }
     }
 }
