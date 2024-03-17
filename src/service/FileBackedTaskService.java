@@ -27,20 +27,118 @@ public class FileBackedTaskService extends InMemoryTaskService {
 
     public static void main(String[] args) {
         FileBackedTaskService firstBackupService = FileBackedTaskService.loadFromFile(new File("resources/backup.csv"));
-        FileBackedTaskService f = new FileBackedTaskService(new File("resources/backup.csv"));
+        FileBackedTaskService mainService = new FileBackedTaskService(new File("resources/backup.csv"));
         System.out.println("history main manager");
-        System.out.println(f.getHistory());
-        Task task = f.createSimpleTask(new Task("main task name", "main task description", TaskStatus.NEW));
-        Epic epic = f.createEpicTask(new Epic("main epic name", "main epic description", TaskStatus.NEW));
-        SubTask subTask = f.createSubTask(new SubTask("main subtask name", "main subtask description", TaskStatus.NEW, epic.getId()));
-        f.getSimpleTaskById(task.getId());
-        f.getEpicTaskById(epic.getId());
-        f.getSubTaskById(subTask.getId());
-        System.out.println(f.getHistory());
-        f.save();
+        System.out.println(mainService.getHistory());
+        Task task = mainService.createSimpleTask(new Task("main task name", "main task description", TaskStatus.NEW));
+        Epic epic = mainService.createEpicTask(new Epic("main epic name", "main epic description", TaskStatus.NEW));
+        SubTask subTask = mainService.createSubTask(new SubTask("main subtask name", "main subtask description", TaskStatus.NEW, epic.getId()));
+        mainService.getSimpleTaskById(task.getId());
+        mainService.getEpicTaskById(epic.getId());
+        mainService.getSubTaskById(subTask.getId());
+        System.out.println(mainService.getHistory());
         FileBackedTaskService secondBackupService = FileBackedTaskService.loadFromFile(new File("resources/backup.csv"));
-        System.out.println(f.getHistory().equals(firstBackupService.getHistory()));
-        System.out.println(f.getHistory().equals(secondBackupService.getHistory()));
+        System.out.println(mainService.getHistory().equals(firstBackupService.getHistory()));
+        System.out.println(mainService.getHistory().equals(secondBackupService.getHistory()));
+    }
+
+    @Override
+    public Task createSimpleTask(Task task) {
+        Task createdTask = super.createSimpleTask(task);
+        save();
+        return createdTask;
+    }
+
+    @Override
+    public SubTask createSubTask(SubTask task) {
+        SubTask createdTask = super.createSubTask(task);
+        save();
+        return createdTask;
+    }
+
+    @Override
+    public Epic createEpicTask(Epic task) {
+        Epic createdTask = super.createEpicTask(task);
+        save();
+        return createdTask;
+    }
+
+    @Override
+    public Task updateSimpleTask(Task task) {
+        Task createdTask = super.updateSimpleTask(task);
+        save();
+        return createdTask;
+    }
+
+    @Override
+    public SubTask updateSubTask(SubTask task) {
+        SubTask createdTask = super.updateSubTask(task);
+        save();
+        return createdTask;
+    }
+
+    @Override
+    public Epic updateEpicTask(Epic task) {
+        Epic createdTask = super.updateEpicTask(task);
+        save();
+        return createdTask;
+    }
+
+    @Override
+    public void removeAllSimpleTasks() {
+        super.removeAllSimpleTasks();
+        save();
+    }
+
+    @Override
+    public void removeAllSubTasks() {
+        super.removeAllSubTasks();
+        save();
+    }
+
+    @Override
+    public void removeAllEpicTasks() {
+        super.removeAllEpicTasks();
+        save();
+    }
+
+    @Override
+    public Task getSimpleTaskById(long id) {
+        Task createdTask = super.getSimpleTaskById(id);
+        save();
+        return createdTask;
+    }
+
+    @Override
+    public SubTask getSubTaskById(long id) {
+        SubTask createdTask = super.getSubTaskById(id);
+        save();
+        return createdTask;
+    }
+
+    @Override
+    public Epic getEpicTaskById(long id) {
+        Epic createdTask = super.getEpicTaskById(id);
+        save();
+        return createdTask;
+    }
+
+    @Override
+    public void removeSimpleTaskById(long id) {
+        super.removeSimpleTaskById(id);
+        save();
+    }
+
+    @Override
+    public void removeSubTaskById(long id) {
+        super.removeSubTaskById(id);
+        save();
+    }
+
+    @Override
+    public void removeEpicTaskById(long id) {
+        super.removeEpicTaskById(id);
+        save();
     }
 
     private void save() {
@@ -77,7 +175,7 @@ public class FileBackedTaskService extends InMemoryTaskService {
             System.out.println("Запись бэкапа не удалась");
             throw new RuntimeException(e);
         }
-        System.out.println("backup сделан");
+        System.out.println("backup успешно завершен");
     }
 
     public static FileBackedTaskService loadFromFile(File file) {
