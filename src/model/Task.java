@@ -11,7 +11,7 @@ public class Task {
     public Task() {
     }
 
-    public Task(int id, String name, String description, TaskStatus status) {
+    public Task(long id, String name, String description, TaskStatus status) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -54,6 +54,10 @@ public class Task {
 
     public void setStatus(TaskStatus status) {
         this.status = status;
+    }
+
+    public TaskType getTaskType() {
+        return TaskType.TASK;
     }
 
     @Override

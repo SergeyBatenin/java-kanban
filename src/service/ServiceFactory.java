@@ -1,14 +1,17 @@
 package service;
 
-public class ServiceFactory {
-    private static HistoryService historyService = new InMemoryHistoryService();
-    private static TaskService taskService = new InMemoryTaskService();
+import java.io.File;
 
+public class ServiceFactory {
     public static TaskService getDefaultTaskService() {
-        return taskService;
+        return new InMemoryTaskService();
+    }
+
+    public static TaskService getDefaultFileTaskService(File file) {
+        return new FileBackedTaskService(file);
     }
 
     public static HistoryService getDefaultHistoryService() {
-        return historyService;
+        return new InMemoryHistoryService();
     }
 }

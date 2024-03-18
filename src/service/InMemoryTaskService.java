@@ -8,13 +8,14 @@ import model.TaskStatus;
 import java.util.*;
 
 public class InMemoryTaskService implements TaskService {
-    private static long taskIdentifier = 0;
-    private final Map<Long, Task> simpleTasks;
-    private final Map<Long, SubTask> subTasks;
-    private final Map<Long, Epic> epicTasks;
-    private final HistoryService historyManager;
+    protected long taskIdentifier;
+    protected final Map<Long, Task> simpleTasks;
+    protected final Map<Long, SubTask> subTasks;
+    protected final Map<Long, Epic> epicTasks;
+    protected final HistoryService historyManager;
 
     public InMemoryTaskService() {
+        taskIdentifier = 0;
         simpleTasks = new HashMap<>();
         subTasks = new HashMap<>();
         epicTasks = new HashMap<>();
