@@ -2,6 +2,7 @@
 *.class
 out
 java-kanban.iml
+.idea/
 
 # Log file
 *.log
