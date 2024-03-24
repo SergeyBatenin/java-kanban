@@ -3,6 +3,7 @@
 out
 java-kanban.iml
 .idea/
+.idea
 
 # Log file
 *.log
