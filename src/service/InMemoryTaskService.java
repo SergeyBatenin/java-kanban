@@ -29,6 +29,10 @@ public class InMemoryTaskService implements TaskService {
 
     @Override
     public Task createSimpleTask(Task task) {
+        if (checkTaskTimeIntersections(task)) {
+            throw new RuntimeException("Задача имеет пересечение времени ввыполнения");
+        }
+
         task.setId(++taskIdentifier);
         simpleTasks.put(task.getId(), task);
         if (task.getStartTime() != null) {
@@ -39,14 +43,16 @@ public class InMemoryTaskService implements TaskService {
 
     @Override
     public SubTask createSubTask(SubTask task) {
-        task.setId(++taskIdentifier);
-
         long parentId = task.getEpicId();
         Epic taskParent = epicTasks.get(parentId);
         if (taskParent == null) {
             throw new RuntimeException("Подзадача не может существовать без эпика");
         }
+        if (checkTaskTimeIntersections(task)) {
+            throw new RuntimeException("Задача имеет пересечение времени ввыполнения");
+        }
 
+        task.setId(++taskIdentifier);
         taskParent.getSubTaskIds().add(task.getId());
         subTasks.put(task.getId(), task);
         updateEpicStatus(parentId);
@@ -75,6 +81,10 @@ public class InMemoryTaskService implements TaskService {
         }
 
         prioritizedTasks.remove(updatedTask);
+        if (checkTaskTimeIntersections(task)) {
+            prioritizedTasks.add(updatedTask);
+            throw new RuntimeException("Обновление данных невозможно! Задача имеет пересечение времени ввыполнения");
+        }
         if (task.getStartTime() != null) {
             prioritizedTasks.add(task);
         }
@@ -100,6 +110,10 @@ public class InMemoryTaskService implements TaskService {
         }
 
         prioritizedTasks.remove(updatedTask);
+        if (checkTaskTimeIntersections(task)) {
+            prioritizedTasks.add(updatedTask);
+            throw new RuntimeException("Обновление данных невозможно! Задача имеет пересечение времени ввыполнения");
+        }
         if (task.getStartTime() != null) {
             prioritizedTasks.add(task);
         }
@@ -178,6 +192,17 @@ public class InMemoryTaskService implements TaskService {
         epic.setDuration(duration);
         epic.setEndTime(epicEnd);
         epicTasks.put(epic.getId(), epic);
+    }
+
+    private boolean checkTaskTimeIntersections(Task task) {
+        LocalDateTime start = task.getStartTime();
+        if (start == null) return false;
+
+        LocalDateTime end = task.getEndTime();
+        long count = prioritizedTasks.stream()
+                .filter(t -> start.isAfter(t.getEndTime()) || end.isBefore(t.getStartTime()))
+                .count();
+        return count != prioritizedTasks.size();
     }
 
     @Override
