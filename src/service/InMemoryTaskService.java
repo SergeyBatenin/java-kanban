@@ -5,6 +5,8 @@ import model.SubTask;
 import model.Task;
 import model.TaskStatus;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class InMemoryTaskService implements TaskService {
@@ -14,18 +16,24 @@ public class InMemoryTaskService implements TaskService {
     protected final Map<Long, Epic> epicTasks;
     protected final HistoryService historyManager;
 
+    protected final TreeSet<Task> prioritizedTasks;
+
     public InMemoryTaskService() {
         taskIdentifier = 0;
         simpleTasks = new HashMap<>();
         subTasks = new HashMap<>();
         epicTasks = new HashMap<>();
         this.historyManager = ServiceFactory.getDefaultHistoryService();
+        this.prioritizedTasks = new TreeSet<>(Comparator.comparing(Task::getStartTime).thenComparing(Task::getId));
     }
 
     @Override
     public Task createSimpleTask(Task task) {
         task.setId(++taskIdentifier);
         simpleTasks.put(task.getId(), task);
+        if (task.getStartTime() != null) {
+            prioritizedTasks.add(task);
+        }
         return task;
     }
 
@@ -42,6 +50,10 @@ public class InMemoryTaskService implements TaskService {
         taskParent.getSubTaskIds().add(task.getId());
         subTasks.put(task.getId(), task);
         updateEpicStatus(parentId);
+        updateEpicTimeData(parentId);
+        if (task.getStartTime() != null) {
+            prioritizedTasks.add(task);
+        }
 
         return task;
     }
@@ -56,26 +68,45 @@ public class InMemoryTaskService implements TaskService {
 
     @Override
     public Task updateSimpleTask(Task task) {
-        if (simpleTasks.get(task.getId()) == null) {
+        long id = task.getId();
+        final Task updatedTask = simpleTasks.get(id);
+        if (updatedTask == null) {
             throw new RuntimeException("Такой задачи не существует");
         }
 
-        simpleTasks.put(task.getId(), task);
+        prioritizedTasks.remove(updatedTask);
+        if (task.getStartTime() != null) {
+            prioritizedTasks.add(task);
+        }
+
+        simpleTasks.put(id, task);
+
         return task;
     }
 
     @Override
     public SubTask updateSubTask(SubTask task) {
-        if (subTasks.get(task.getId()) == null) {
+        long id = task.getId();
+
+        final SubTask updatedTask = subTasks.get(id);
+        if (updatedTask == null) {
             throw new RuntimeException("Такой подзадачи не существует");
         }
-        Epic epic = epicTasks.get(task.getEpicId());
+
+        long epicId = task.getEpicId();
+        Epic epic = epicTasks.get(epicId);
         if (epic == null) {
             throw new RuntimeException("Эпика связанного с этой подзадачей не существует");
         }
 
-        subTasks.put(task.getId(), task);
-        updateEpicStatus(task.getEpicId());
+        prioritizedTasks.remove(updatedTask);
+        if (task.getStartTime() != null) {
+            prioritizedTasks.add(task);
+        }
+
+        subTasks.put(id, task);
+        updateEpicStatus(epicId);
+        updateEpicTimeData(epicId);
         return task;
     }
 
@@ -117,6 +148,38 @@ public class InMemoryTaskService implements TaskService {
         }
     }
 
+    private void updateEpicTimeData(long epicId) {
+        final Epic epic = epicTasks.get(epicId);
+        LocalDateTime epicStart = null;
+        LocalDateTime epicEnd = null;
+        Duration duration = Duration.ZERO;
+
+        List<SubTask> epicSubTasks = epic.getSubTaskIds().stream()
+                .map(subTasks::get)
+                .toList();
+
+        LocalDateTime startTime;
+        LocalDateTime endTime;
+        for (SubTask subTask : epicSubTasks) {
+            duration = duration.plus(subTask.getDuration());
+
+            startTime = subTask.getStartTime();
+            if (startTime != null) {
+                if (epicStart == null || startTime.isBefore(epicStart)) {
+                    epicStart = startTime;
+                }
+                endTime = subTask.getEndTime();
+                if (epicEnd == null || endTime.isAfter(epicEnd)) {
+                    epicEnd = endTime;
+                }
+            }
+        }
+        epic.setStartTime(epicStart);
+        epic.setDuration(duration);
+        epic.setEndTime(epicEnd);
+        epicTasks.put(epic.getId(), epic);
+    }
+
     @Override
     public List<Task> getAllSimpleTasks() {
         return new ArrayList<>(simpleTasks.values());
@@ -154,6 +217,7 @@ public class InMemoryTaskService implements TaskService {
         for (Epic epic : epics) {
             epic.getSubTaskIds().clear();
             updateEpicStatus(epic.getId());
+            updateEpicTimeData(epic.getId());
         }
         subTasks.values().forEach(task -> historyManager.remove(task.getId()));
         subTasks.clear();
@@ -213,6 +277,7 @@ public class InMemoryTaskService implements TaskService {
 
         parent.getSubTaskIds().remove(id);
         updateEpicStatus(parentId);
+        updateEpicTimeData(parentId);
     }
 
     @Override
@@ -233,5 +298,9 @@ public class InMemoryTaskService implements TaskService {
     @Override
     public List<Task> getHistory() {
         return historyManager.getHistory();
+    }
+
+    public List<Task> getPrioritizedTasks() {
+        return new ArrayList<>(prioritizedTasks);
     }
 }

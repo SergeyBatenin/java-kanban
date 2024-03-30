@@ -8,6 +8,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,9 +18,22 @@ import static org.junit.jupiter.api.Assertions.*;
 class InMemoryHistoryServiceTest {
 
     private HistoryService historyService;
-    private Task task = new Task(1, "name", "description", TaskStatus.NEW);
-    private Epic epic = new Epic(2, "name", "description", TaskStatus.NEW);
-    private SubTask subtask = new SubTask(3, "name", "description", TaskStatus.NEW, 2);
+    private Task task = new Task(
+            1,
+            "name",
+            "description",
+            TaskStatus.NEW,
+            LocalDateTime.of(2024, 3, 30, 17, 30),
+            Duration.ofMinutes(15));
+    private Epic epic = new Epic(2, "name", "description", TaskStatus.NEW, null, Duration.ZERO);
+    private SubTask subtask = new SubTask(
+            3,
+            "name",
+            "description",
+            TaskStatus.NEW,
+            2,
+            LocalDateTime.of(2024, 3, 29, 17, 30),
+            Duration.ofMinutes(15));
 
     @BeforeEach
     void initializeHistoryService() {

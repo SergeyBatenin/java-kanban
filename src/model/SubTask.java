@@ -1,18 +1,21 @@
 package model;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 public class SubTask extends Task {
     private long epicId;
 
     public SubTask() {
     }
 
-    public SubTask(long id, String name, String description, TaskStatus status, long epicId) {
-        super(id, name, description, status);
+    public SubTask(long id, String name, String description, TaskStatus status, long epicId, LocalDateTime startTime, Duration duration) {
+        super(id, name, description, status, startTime, duration);
         this.epicId = epicId;
     }
 
-    public SubTask(String name, String description, TaskStatus status, long epicId) {
-        super(name, description, status);
+    public SubTask(String name, String description, TaskStatus status, long epicId, LocalDateTime startTime, Duration duration) {
+        super(name, description, status, startTime, duration);
         this.epicId = epicId;
     }
 
@@ -55,6 +58,8 @@ public class SubTask extends Task {
                 ", description='" + description + '\'' +
                 ", status=" + status +
                 ", epicId=" + epicId +
+                ", startTime=" + (startTime != null ? startTime.format(DATE_TIME_FORMATTER) : null) +
+                ", duration=" + duration.toHours() + ":" + duration.toMinutesPart() +
                 '}';
     }
 }

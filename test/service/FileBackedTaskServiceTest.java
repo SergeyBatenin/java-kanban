@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -30,11 +31,24 @@ public class FileBackedTaskServiceTest {
     }
 
     private void initializeTasks() {
-        task = new Task("name", "description", TaskStatus.NEW);
+        task = new Task(
+                "name",
+                "description",
+                TaskStatus.NEW,
+//                LocalDateTime.of(2024, 3, 30, 17, 30),
+                null,
+                Duration.ofMinutes(15));
         taskService.createSimpleTask(task);
-        epic = new Epic("name", "description", TaskStatus.NEW);
+        epic = new Epic("name", "description", TaskStatus.NEW, null, Duration.ZERO);
         taskService.createEpicTask(epic);
-        subtask = new SubTask("name", "description", TaskStatus.NEW, epic.getId());
+        subtask = new SubTask(
+                "name",
+                "description",
+                TaskStatus.NEW,
+                epic.getId(),
+//                LocalDateTime.of(2024, 3, 29, 17, 30),
+                null,
+                Duration.ofMinutes(15));
         taskService.createSubTask(subtask);
 
         taskService.getEpicTaskById(epic.getId());

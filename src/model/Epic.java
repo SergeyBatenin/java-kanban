@@ -1,23 +1,30 @@
 package model;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Epic extends Task {
     private List<Long> subTaskIds;
+    private LocalDateTime endTime;
 
     public Epic() {
         this.subTaskIds = new ArrayList<>();
+        this.duration = Duration.ZERO;
+        this.endTime = super.getEndTime();
     }
 
-    public Epic(long id, String name, String description, TaskStatus status) {
-        super(id, name, description, status);
+    public Epic(long id, String name, String description, TaskStatus status, LocalDateTime startTime, Duration duration) {
+        super(id, name, description, status, startTime, duration);
         this.subTaskIds = new ArrayList<>();
+        this.endTime = super.getEndTime();
     }
 
-    public Epic(String name, String description, TaskStatus status) {
-        super(name, description, status);
+    public Epic(String name, String description, TaskStatus status, LocalDateTime startTime, Duration duration) {
+        super(name, description, status, startTime, duration);
         this.subTaskIds = new ArrayList<>();
+        this.endTime = super.getEndTime();
     }
 
     public List<Long> getSubTaskIds() {
@@ -34,6 +41,15 @@ public class Epic extends Task {
     }
 
     @Override
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -41,13 +57,19 @@ public class Epic extends Task {
 
         Epic epic = (Epic) o;
 
-        return subTaskIds.equals(epic.subTaskIds);
+        if (!subTaskIds.equals(epic.subTaskIds)) return false;
+        if (endTime == null && epic.endTime == null) return true;
+        if (endTime != null && epic.endTime != null) {
+            return endTime.equals(epic.endTime);
+        }
+        return false;
     }
 
     @Override
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + subTaskIds.hashCode();
+        result = 31 * result + (endTime != null ? endTime.hashCode() : 0);
         return result;
     }
 
@@ -58,6 +80,8 @@ public class Epic extends Task {
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", status=" + status +
+                ", startTime=" + (startTime != null ? startTime.format(DATE_TIME_FORMATTER) : null) +
+                ", duration=" + duration.toHours() + ":" + duration.toMinutesPart() +
                 ", subTasks={");
 
         if (subTaskIds.isEmpty()) {
