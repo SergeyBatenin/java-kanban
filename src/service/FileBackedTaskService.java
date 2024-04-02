@@ -13,12 +13,16 @@ import model.TaskStatus;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class FileBackedTaskService extends InMemoryTaskService {
     private final File backupFilename;
     private static final String DELIMITER = ",";
-    private static final String FILE_HEADER = String.format("id%1$stype%1$sname%1$sstatus%1$sdescription%1$srelated", DELIMITER);
+    private static final String FILE_HEADER = String.format(
+            "id%1$stype%1$sname%1$sstatus%1$sdescription%1$sstarttime%1$sduration%1$srelated", DELIMITER);
 
     public FileBackedTaskService(File file) {
         super();
@@ -30,9 +34,25 @@ public class FileBackedTaskService extends InMemoryTaskService {
         FileBackedTaskService mainService = new FileBackedTaskService(new File("resources/backup.csv"));
         System.out.println("history main manager");
         System.out.println(mainService.getHistory());
-        Task task = mainService.createSimpleTask(new Task("main task name", "main task description", TaskStatus.NEW));
-        Epic epic = mainService.createEpicTask(new Epic("main epic name", "main epic description", TaskStatus.NEW));
-        SubTask subTask = mainService.createSubTask(new SubTask("main subtask name", "main subtask description", TaskStatus.NEW, epic.getId()));
+        Task task = mainService.createSimpleTask(new Task(
+                "main task name",
+                "main task description",
+                TaskStatus.NEW,
+                LocalDateTime.of(2024, 3, 4, 9, 0),
+                Duration.ofMinutes(15)));
+        Epic epic = mainService.createEpicTask(new Epic(
+                "main epic name",
+                "main epic description",
+                TaskStatus.NEW,
+                null,
+                Duration.ZERO));
+        SubTask subTask = mainService.createSubTask(new SubTask(
+                "main subtask name",
+                "main subtask description",
+                TaskStatus.NEW,
+                epic.getId(),
+                LocalDateTime.of(2024, 3, 3, 9, 45),
+                Duration.ofMinutes(15)));
         mainService.getSimpleTaskById(task.getId());
         mainService.getEpicTaskById(epic.getId());
         mainService.getSubTaskById(subTask.getId());
@@ -40,6 +60,12 @@ public class FileBackedTaskService extends InMemoryTaskService {
         FileBackedTaskService secondBackupService = FileBackedTaskService.loadFromFile(new File("resources/backup.csv"));
         System.out.println(mainService.getHistory().equals(firstBackupService.getHistory()));
         System.out.println(mainService.getHistory().equals(secondBackupService.getHistory()));
+        List<Task> prioritizedList1 = mainService.getPrioritizedTasks();
+        List<Task> prioritizedList2 = firstBackupService.getPrioritizedTasks();
+        List<Task> prioritizedList3 = secondBackupService.getPrioritizedTasks();
+        System.out.println(prioritizedList1.equals(prioritizedList2));
+        System.out.println(prioritizedList1.equals(prioritizedList3));
+        System.out.println(prioritizedList2.equals(prioritizedList3));
     }
 
     @Override
@@ -231,11 +257,17 @@ public class FileBackedTaskService extends InMemoryTaskService {
                 TaskDto taskDto = TaskMapper.dtoFromData(taskData);
                 Task task = TaskMapper.dtoToTask(taskDto);
                 taskService.simpleTasks.put(task.getId(), task);
+                if (task.getStartTime() != null) {
+                    taskService.prioritizedTasks.add(task);
+                }
                 break;
             case "SUBTASK":
                 SubtaskDto subtaskDto = SubtaskMapper.dtoFromData(taskData);
                 SubTask subTask = SubtaskMapper.dtoToSubtask(subtaskDto);
                 taskService.subTasks.put(subTask.getId(), subTask);
+                if (subTask.getStartTime() != null) {
+                    taskService.prioritizedTasks.add(subTask);
+                }
                 break;
             case "EPIC":
                 EpicDto epicDto = EpicMapper.dtoFromData(taskData);
