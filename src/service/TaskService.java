@@ -46,4 +46,6 @@ public interface TaskService {
     void removeEpicTaskById(long id);
 
     List<Task> getHistory();
+
+    List<Task> getPrioritizedTasks();
 }

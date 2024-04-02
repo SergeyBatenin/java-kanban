@@ -41,16 +41,26 @@ class InMemoryHistoryServiceTest {
     }
 
     @Test
+    @DisplayName("Получение пустого списка задач")
+    void shouldReturnEmptyTaskList() {
+        final List<Task> history = historyService.getHistory();
+
+        assertNotNull(history, "История не существует");
+        assertTrue(history.isEmpty(), "Список задач не пустой");
+    }
+
+    @Test
     @DisplayName("Проверка размера списка при добавлении нескольких задач")
     void shouldReturn3AfterAddingThreeTasks() {
         historyService.add(task);
         historyService.add(epic);
         historyService.add(subtask);
+        int expectedSize = 3;
 
         final List<Task> history = historyService.getHistory();
 
         assertNotNull(history, "История не существует");
-        assertEquals(3, history.size(), "Размер списка не совпадает");
+        assertEquals(expectedSize, history.size(), "Размер списка не совпадает");
     }
 
     @Test
@@ -59,9 +69,10 @@ class InMemoryHistoryServiceTest {
         for (int i = 0; i < 10; i++) {
             historyService.add(task);
         }
+        int expectedSize = 1;
 
         assertNotNull(historyService.getHistory(), "История не существует");
-        assertEquals(1, historyService.getHistory().size(), "Размер списка не совпадает");
+        assertEquals(expectedSize, historyService.getHistory().size(), "Размер списка не совпадает");
     }
 
     @Test
@@ -76,32 +87,31 @@ class InMemoryHistoryServiceTest {
         historyService.add(subtask);
 
         assertNotNull(historyService.getHistory(), "История не существует");
-        assertEquals(2, historyService.getHistory().size(), "Размер списка не совпадает");
+        assertEquals(exptectedList.size(), historyService.getHistory().size(), "Размер списка не совпадает");
         assertEquals(exptectedList, historyService.getHistory(), "Список истории просмотров не совпадает");
     }
 
     @Test
-    @DisplayName("Проверка удаления задачи из истории, которая в ней существует")
-    void shouldEqualsAfterDeletingTaskFromHistoryThatExists() {
-        List<Task> expectedList = List.of(task);
+    @DisplayName("Проверка удаления задачи из истории из начала списка")
+    void shouldBeEqualAfterRemovingTaskFromBeginList() {
+        List<Task> expectedList = List.of(task, epic);
 
-        historyService.add(task);
         historyService.add(subtask);
+        historyService.add(task);
+        historyService.add(epic);
         historyService.remove(subtask.getId());
 
         final List<Task> history = historyService.getHistory();
 
         assertNotNull(history, "История не существует");
-        assertEquals(1, history.size(), "Размер списка не совпадает");
+        assertEquals(expectedList.size(), history.size(), "Размер списка не совпадает");
         assertEquals(expectedList, history, "Список истории просмотров не совпадает");
     }
 
     @Test
     @DisplayName("Проверка списка после удаления задачи из середины списка")
     void shouldBeEqualAfterRemovingTaskFromMiddleList() {
-        List<Task> expectedList = new ArrayList<>();
-        expectedList.add(task);
-        expectedList.add(epic);
+        List<Task> expectedList = List.of(task, epic);
 
         historyService.add(task);
         historyService.add(subtask);
@@ -111,7 +121,24 @@ class InMemoryHistoryServiceTest {
         final List<Task> history = historyService.getHistory();
 
         assertNotNull(history, "История не существует");
-        assertEquals(2, history.size(), "Размер списка не совпадает");
+        assertEquals(expectedList.size(), history.size(), "Размер списка не совпадает");
+        assertEquals(expectedList, history, "Список истории просмотров не совпадает");
+    }
+
+    @Test
+    @DisplayName("Проверка удаления задачи из историис конца списка")
+    void shouldBeEqualAfterRemovingTaskFromEndList() {
+        List<Task> expectedList = List.of(task, epic);
+
+        historyService.add(task);
+        historyService.add(epic);
+        historyService.add(subtask);
+        historyService.remove(subtask.getId());
+
+        final List<Task> history = historyService.getHistory();
+
+        assertNotNull(history, "История не существует");
+        assertEquals(expectedList.size(), history.size(), "Размер списка не совпадает");
         assertEquals(expectedList, history, "Список истории просмотров не совпадает");
     }
 }
