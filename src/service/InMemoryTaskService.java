@@ -234,6 +234,7 @@ public class InMemoryTaskService implements TaskService {
     public void removeAllSimpleTasks() {
         simpleTasks.values().forEach(task -> historyManager.remove(task.getId()));
         simpleTasks.clear();
+        prioritizedTasks.clear();
     }
 
     @Override
@@ -246,11 +247,15 @@ public class InMemoryTaskService implements TaskService {
         }
         subTasks.values().forEach(task -> historyManager.remove(task.getId()));
         subTasks.clear();
+        prioritizedTasks.clear();
     }
 
     @Override
     public void removeAllEpicTasks() {
-        subTasks.values().forEach(task -> historyManager.remove(task.getId()));
+        subTasks.values().forEach(task -> {
+            historyManager.remove(task.getId());
+            prioritizedTasks.remove(task);
+        });
         subTasks.clear();
         epicTasks.values().forEach(task -> historyManager.remove(task.getId()));
         epicTasks.clear();
@@ -284,6 +289,7 @@ public class InMemoryTaskService implements TaskService {
             throw new RuntimeException("Задачи с айди {" + id + "} не существует");
         }
         historyManager.remove(id);
+        prioritizedTasks.remove(removedTask);
     }
 
     @Override
@@ -292,7 +298,6 @@ public class InMemoryTaskService implements TaskService {
         if (removedSubtask == null) {
             throw new RuntimeException("Подзадачи с айди {" + id + "} не существует");
         }
-        historyManager.remove(id);
 
         long parentId = removedSubtask.getEpicId();
         Epic parent = epicTasks.get(parentId);
@@ -300,6 +305,8 @@ public class InMemoryTaskService implements TaskService {
             throw new RuntimeException("Эпика связанного с этой подзадачей не существует");
         }
 
+        historyManager.remove(id);
+        prioritizedTasks.remove(removedSubtask);
         parent.getSubTaskIds().remove(id);
         updateEpicStatus(parentId);
         updateEpicTimeData(parentId);
@@ -315,8 +322,9 @@ public class InMemoryTaskService implements TaskService {
 
         List<Long> epicSubTasks = removedEpic.getSubTaskIds();
         for (long subTaskId : epicSubTasks) {
-            subTasks.remove(subTaskId);
+            SubTask removed = subTasks.remove(subTaskId);
             historyManager.remove(subTaskId);
+            prioritizedTasks.remove(removed);
         }
     }
 
