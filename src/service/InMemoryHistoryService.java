@@ -18,6 +18,8 @@ public class InMemoryHistoryService implements HistoryService {
 
     @Override
     public void add(Task task) {
+        if (task == null) return;
+
         final long taskId = task.getId();
         if (taskCache.containsKey(taskId)) {
             remove(taskId);
