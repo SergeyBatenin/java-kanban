@@ -1,5 +1,8 @@
 package service;
 
+import exception.EpicParentNotFound;
+import exception.TaskNotFoundException;
+import exception.TaskTimeIntersectionException;
 import model.Epic;
 import model.SubTask;
 import model.Task;
@@ -15,7 +18,6 @@ public class InMemoryTaskService implements TaskService {
     protected final Map<Long, SubTask> subTasks;
     protected final Map<Long, Epic> epicTasks;
     protected final HistoryService historyManager;
-
     protected final TreeSet<Task> prioritizedTasks;
 
     public InMemoryTaskService() {
@@ -30,7 +32,7 @@ public class InMemoryTaskService implements TaskService {
     @Override
     public Task createSimpleTask(Task task) {
         if (checkTaskTimeIntersections(task)) {
-            throw new RuntimeException("Задача имеет пересечение времени ввыполнения");
+            throw new TaskTimeIntersectionException("Задача имеет пересечение времени ввыполнения");
         }
 
         task.setId(++taskIdentifier);
@@ -46,10 +48,10 @@ public class InMemoryTaskService implements TaskService {
         long parentId = task.getEpicId();
         Epic taskParent = epicTasks.get(parentId);
         if (taskParent == null) {
-            throw new RuntimeException("Подзадача не может существовать без эпика");
+            throw new EpicParentNotFound("Подзадача не может существовать без эпика");
         }
         if (checkTaskTimeIntersections(task)) {
-            throw new RuntimeException("Задача имеет пересечение времени ввыполнения");
+            throw new TaskTimeIntersectionException("Задача имеет пересечение времени ввыполнения");
         }
 
         task.setId(++taskIdentifier);
@@ -77,13 +79,13 @@ public class InMemoryTaskService implements TaskService {
         long id = task.getId();
         final Task updatedTask = simpleTasks.get(id);
         if (updatedTask == null) {
-            throw new RuntimeException("Такой задачи не существует");
+            throw new TaskNotFoundException("Такой задачи не существует");
         }
 
         prioritizedTasks.remove(updatedTask);
         if (checkTaskTimeIntersections(task)) {
             prioritizedTasks.add(updatedTask);
-            throw new RuntimeException("Обновление данных невозможно! Задача имеет пересечение времени ввыполнения");
+            throw new TaskTimeIntersectionException("Обновление данных невозможно! Задача имеет пересечение времени ввыполнения");
         }
         if (task.getStartTime() != null) {
             prioritizedTasks.add(task);
@@ -100,19 +102,19 @@ public class InMemoryTaskService implements TaskService {
 
         final SubTask updatedTask = subTasks.get(id);
         if (updatedTask == null) {
-            throw new RuntimeException("Такой подзадачи не существует");
+            throw new TaskNotFoundException("Такой подзадачи не существует");
         }
 
         long epicId = task.getEpicId();
         Epic epic = epicTasks.get(epicId);
         if (epic == null) {
-            throw new RuntimeException("Эпика связанного с этой подзадачей не существует");
+            throw new EpicParentNotFound("Эпика связанного с этой подзадачей не существует");
         }
 
         prioritizedTasks.remove(updatedTask);
         if (checkTaskTimeIntersections(task)) {
             prioritizedTasks.add(updatedTask);
-            throw new RuntimeException("Обновление данных невозможно! Задача имеет пересечение времени ввыполнения");
+            throw new TaskTimeIntersectionException("Обновление данных невозможно! Задача имеет пересечение времени ввыполнения");
         }
         if (task.getStartTime() != null) {
             prioritizedTasks.add(task);
@@ -128,7 +130,7 @@ public class InMemoryTaskService implements TaskService {
     public Epic updateEpicTask(Epic task) {
         Epic saved = epicTasks.get(task.getId());
         if (saved == null) {
-            throw new RuntimeException("Такого эпика не существует");
+            throw new TaskNotFoundException("Такого эпика не существует");
         }
 
         saved.setName(task.getName());
@@ -234,6 +236,7 @@ public class InMemoryTaskService implements TaskService {
     public void removeAllSimpleTasks() {
         simpleTasks.values().forEach(task -> historyManager.remove(task.getId()));
         simpleTasks.clear();
+        prioritizedTasks.clear();
     }
 
     @Override
@@ -246,11 +249,15 @@ public class InMemoryTaskService implements TaskService {
         }
         subTasks.values().forEach(task -> historyManager.remove(task.getId()));
         subTasks.clear();
+        prioritizedTasks.clear();
     }
 
     @Override
     public void removeAllEpicTasks() {
-        subTasks.values().forEach(task -> historyManager.remove(task.getId()));
+        subTasks.values().forEach(task -> {
+            historyManager.remove(task.getId());
+            prioritizedTasks.remove(task);
+        });
         subTasks.clear();
         epicTasks.values().forEach(task -> historyManager.remove(task.getId()));
         epicTasks.clear();
@@ -281,25 +288,27 @@ public class InMemoryTaskService implements TaskService {
     public void removeSimpleTaskById(long id) {
         Task removedTask = simpleTasks.remove(id);
         if (removedTask == null) {
-            throw new RuntimeException("Задачи с айди {" + id + "} не существует");
+            throw new TaskNotFoundException("Задачи с айди {" + id + "} не существует");
         }
         historyManager.remove(id);
+        prioritizedTasks.remove(removedTask);
     }
 
     @Override
     public void removeSubTaskById(long id) {
         SubTask removedSubtask = subTasks.remove(id);
         if (removedSubtask == null) {
-            throw new RuntimeException("Подзадачи с айди {" + id + "} не существует");
+            throw new TaskNotFoundException("Подзадачи с айди {" + id + "} не существует");
         }
-        historyManager.remove(id);
 
         long parentId = removedSubtask.getEpicId();
         Epic parent = epicTasks.get(parentId);
         if (parent == null) {
-            throw new RuntimeException("Эпика связанного с этой подзадачей не существует");
+            throw new EpicParentNotFound("Эпика связанного с этой подзадачей не существует");
         }
 
+        historyManager.remove(id);
+        prioritizedTasks.remove(removedSubtask);
         parent.getSubTaskIds().remove(id);
         updateEpicStatus(parentId);
         updateEpicTimeData(parentId);
@@ -309,14 +318,15 @@ public class InMemoryTaskService implements TaskService {
     public void removeEpicTaskById(long id) {
         Epic removedEpic = epicTasks.remove(id);
         if (removedEpic == null) {
-            throw new RuntimeException("Эпика с айди {" + id + "} не существует");
+            throw new TaskNotFoundException("Эпика с айди {" + id + "} не существует");
         }
         historyManager.remove(id);
 
         List<Long> epicSubTasks = removedEpic.getSubTaskIds();
         for (long subTaskId : epicSubTasks) {
-            subTasks.remove(subTaskId);
+            SubTask removed = subTasks.remove(subTaskId);
             historyManager.remove(subTaskId);
+            prioritizedTasks.remove(removed);
         }
     }
 

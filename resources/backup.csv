@@ -1,7 +1,8 @@
 id,type,name,status,description,starttime,duration,related
-1,TASK,main task name,NEW,main task description,04.03.24 09:00,15
-2,EPIC,main epic name,NEW,main epic description,03.03.24 09:45,15,3
-3,SUBTASK,main subtask name,NEW,main subtask description,03.03.24 09:45,15,2
+1,TASK,name,NEW,description,01.03.24 09:00,15
+2,EPIC,name,NEW,description,02.03.24 09:00,15,3
+4,EPIC,NEW name ,NEW,NEW description,11.01.24 10:00,25,
+3,SUBTASK,name,NEW,description,02.03.24 09:00,15,2
 
-1,2,3
-3
+
+4
