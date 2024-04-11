@@ -3,6 +3,8 @@ package service;
 import dto.EpicDto;
 import dto.SubtaskDto;
 import dto.TaskDto;
+import exception.TaskServiceRestoreException;
+import exception.TaskServiceSaveException;
 import mapper.EpicMapper;
 import mapper.SubtaskMapper;
 import mapper.TaskMapper;
@@ -199,7 +201,7 @@ public class FileBackedTaskService extends InMemoryTaskService {
             writer.flush();
         } catch (IOException e) {
             System.out.println("Запись бэкапа не удалась");
-            throw new RuntimeException(e);
+            throw new TaskServiceSaveException("Запись бэкапа не удалась", e);
         }
         System.out.println("backup успешно завершен");
     }
@@ -285,7 +287,7 @@ public class FileBackedTaskService extends InMemoryTaskService {
         } else if (taskService.subTasks.containsKey(id)) {
             taskService.historyManager.add((taskService.subTasks.get(id)));
         } else {
-            throw new RuntimeException("Ошибка восстановления истории. Менеджер не содержит такую задачу");
+            throw new TaskServiceRestoreException("Ошибка восстановления истории. Менеджер не содержит такую задачу");
         }
     }
 }
